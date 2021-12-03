@@ -1,0 +1,14 @@
+appId: app1
+configType: file
+distributed: false
+redis: redis://localhost:6379
+zookeeper: assd
+limits:
+- api: /
+  limit: 2
+- api: /user/{uid}
+  limit: 10
+- api: /test1
+  limit: 3
+#- api: /test1/test2
+#  limit: 15
