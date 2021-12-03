@@ -36,11 +36,26 @@ public class ZkLimitSource implements AppLimitSource{
     }
     @Override
     public List<AppLimitModel> load() {
+        try {
+            if(client.checkExists().forPath("/ratelimiter")==null){
+                client.create().forPath("/ratelimiter");
+            }
+            if(client.checkExists().forPath("/ratelimiter"+"/"+config.getAppId())==null){
+                client.create().forPath("/ratelimiter"+"/"+config.getAppId());
+            }
+
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
         return null;
     }
 
     @Override
     public void rebuild(AppLimitConfig config) {
+
+    }
+
+    private String getZkData(){
 
     }
 }

@@ -25,6 +25,7 @@ public abstract class AbstractUrlRateLimiter implements UrlRateLimiter {
         this.config = yaml.loadAs(in, AppLimitConfig.class);
         this.appLimitManager=new AppLimitManager();
         initAppLimitSourceFactory(appLimitManager,config);
+
         AppLimitSource source=appLimitSourceFactory.get(config.getConfigType());
         appLimitManager.addLimits(config.getAppId(),source.load());
     }
