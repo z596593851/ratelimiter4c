@@ -1,7 +1,9 @@
 package com.github.ratelimiter4c.limiter.rule.source;
 
+import com.alibaba.fastjson.JSONArray;
 import com.github.ratelimiter4c.exception.AsmException;
 import com.github.ratelimiter4c.limiter.rule.AppLimitManager;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -17,6 +19,7 @@ public class ZkLimitSource implements AppLimitSource{
     private final AppLimitManager manager;
     private final AppLimitConfig config;
     private CuratorFramework client;
+
     public ZkLimitSource(AppLimitManager appLimitManager,  AppLimitConfig config){
         this.manager=appLimitManager;
         this.config=config;
@@ -43,19 +46,24 @@ public class ZkLimitSource implements AppLimitSource{
             if(client.checkExists().forPath("/ratelimiter"+"/"+config.getAppId())==null){
                 client.create().forPath("/ratelimiter"+"/"+config.getAppId());
             }
-
-        } catch (Exception exception) {
-            exception.printStackTrace();
+            String data = getZkData();
+            if(!StringUtils.isBlank(data)){
+                return JSONArray.parseArray(data,AppLimitModel.class);
+            }
+        } catch (Exception e) {
+            throw new AsmException(e);
         }
         return null;
     }
 
     @Override
     public void rebuild(AppLimitConfig config) {
-
+        manager.rebuildRule(config);
     }
 
-    private String getZkData(){
-        return null;
+
+
+    private String getZkData() throws Exception {
+        return new String(client.getData().forPath("/ratelimiter/"+config.getAppId()));
     }
 }

@@ -3,6 +3,10 @@ configType: file
 distributed: false
 redis: redis://localhost:6379
 zookeeper: assd
+
+dbUrl: asa
+dbUsername: aa
+dbPassword: bb
 limits:
 - api: /
   limit: 2

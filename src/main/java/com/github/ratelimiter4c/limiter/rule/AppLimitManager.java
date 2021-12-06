@@ -49,6 +49,9 @@ public class AppLimitManager {
 
 
   public void addLimits(String appId, List<AppLimitModel> limits){
+    if(limits==null || limits.isEmpty()){
+      return;
+    }
     UrlStorage newTrie = new UrlStorage();
     UrlStorage trie = limitRules.putIfAbsent(appId, newTrie);
     if (trie == null) {
