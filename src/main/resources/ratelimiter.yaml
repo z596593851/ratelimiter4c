@@ -1,12 +1,11 @@
 appId: app1
-configType: file
+configType: zk
 distributed: false
 redis: redis://localhost:6379
-zookeeper: assd
-
-dbUrl: asa
-dbUsername: aa
-dbPassword: bb
+zookeeper: 127.0.0.1:2181
+dbUrl: jdbc:mysql://127.0.0.1:3306/local?useUnicode=true&characterEncoding=UTF8&useSSL=false
+dbUsername: root
+dbPassword: root
 limits:
 - api: /
   limit: 2

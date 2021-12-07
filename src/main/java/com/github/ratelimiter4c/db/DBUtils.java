@@ -2,20 +2,17 @@ package com.github.ratelimiter4c.db;
 
 import com.github.ratelimiter4c.exception.AsmException;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
 
 public class DBUtils {
     private final String url;
     private final String username;
     private final String password;
-    private final static String SAVE_SQL="insert into qps_log (appid,url,type,time,count) values(?,?,?,?,?)";
+    private final static String SAVE_SQL="insert into qps_log (appid,url,type,time,count,address) values(?,?,?,?,?,?)";
     static {
         try {
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             throw new AsmException(e);
         }
@@ -42,8 +39,9 @@ public class DBUtils {
                 ps.setString(1,model.getAppid());
                 ps.setString(2,model.getUrl());
                 ps.setInt(3,model.getType());
-                ps.setDate(4,model.getTime());
+                ps.setTimestamp(4,new Timestamp(model.getTime().getTime()));
                 ps.setLong(5,model.getCount());
+                ps.setString(6,model.getAddress());
                 ps.addBatch();
             }
             ps.executeBatch();

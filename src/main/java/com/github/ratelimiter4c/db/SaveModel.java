@@ -1,6 +1,7 @@
 package com.github.ratelimiter4c.db;
 
-import java.sql.Date;
+
+import java.util.Date;
 
 public class SaveModel {
     private String appid;
@@ -8,13 +9,20 @@ public class SaveModel {
     private int type;
     private Date time;
     private long count;
+    private String address;
 
-    public SaveModel(String appid, String url, int type, Date time, long count) {
+    public SaveModel(){
+
+    }
+
+    public SaveModel(String appid, String url, int type, Date time, long count, String address) {
         this.appid = appid;
         this.url = url;
         this.type = type;
         this.time = time;
         this.count = count;
+        this.address=address;
+
     }
 
     public String getAppid() {
@@ -55,5 +63,13 @@ public class SaveModel {
 
     public void setCount(long count) {
         this.count = count;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

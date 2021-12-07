@@ -40,7 +40,8 @@ public class ZkTest {
 
     @Test
     public void setData() throws Exception {
-        String data="121";
+//        String data="{\"appId\":\"app1\",\"limits\":[{\"api\":\"/test\",\"limit\":3}]}";
+        String data="{\"appId\":\"app1\",\"limits\":[{\"api\":\"/hello/hi\",\"limit\":1}]}";
         client.setData().forPath("/ratelimiter/app1",data.getBytes(StandardCharsets.UTF_8));
     }
 

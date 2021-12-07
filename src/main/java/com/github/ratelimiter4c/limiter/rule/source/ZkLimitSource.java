@@ -1,13 +1,15 @@
 package com.github.ratelimiter4c.limiter.rule.source;
 
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.github.ratelimiter4c.exception.AsmException;
 import com.github.ratelimiter4c.limiter.rule.AppLimitManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.cache.NodeCache;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -20,26 +22,21 @@ public class ZkLimitSource implements AppLimitSource{
     private final AppLimitConfig config;
     private CuratorFramework client;
 
-    public ZkLimitSource(AppLimitManager appLimitManager,  AppLimitConfig config){
+    public ZkLimitSource(AppLimitManager appLimitManager,  AppLimitConfig config, CuratorFramework client){
         this.manager=appLimitManager;
         this.config=config;
-        if(config.getConfigType().equals(SOURCE_TYPE)){
-            try {
-                RetryPolicy retryPolicy = new ExponentialBackoffRetry(BASE_SLEEP_TIME_MS, MAX_RETRIES);
-                this.client= CuratorFrameworkFactory.builder().connectString(config.getZookeeper()).sessionTimeoutMs(10000).retryPolicy(retryPolicy).build();
-                client.start();
-                boolean connected = client.blockUntilConnected(TIMEOUT, TimeUnit.MILLISECONDS);
-                if (!connected) {
-                    throw new AsmException("connect zookeeper failed.");
-                }
-            } catch (Exception e) {
-                throw new AsmException(e);
-            }
+        this.client=client;
+        try {
+            watch();
+        } catch (Exception e) {
+            throw new AsmException(e);
         }
     }
+
     @Override
     public List<AppLimitModel> load() {
         try {
+            //初始化
             if(client.checkExists().forPath("/ratelimiter")==null){
                 client.create().forPath("/ratelimiter");
             }
@@ -48,12 +45,25 @@ public class ZkLimitSource implements AppLimitSource{
             }
             String data = getZkData();
             if(!StringUtils.isBlank(data)){
-                return JSONArray.parseArray(data,AppLimitModel.class);
+                AppLimitConfig config= JSONObject.parseObject(data,AppLimitConfig.class);
+                return config.getLimits();
             }
         } catch (Exception e) {
             throw new AsmException(e);
         }
         return null;
+    }
+
+    private void watch() throws Exception {
+        final NodeCache nodeCache = new NodeCache(client, "/ratelimiter"+"/"+config.getAppId(), false);
+        nodeCache.getListenable().addListener(() -> {
+            String data=new String(nodeCache.getCurrentData().getData());
+            System.out.println("监听的节点为" + nodeCache.getCurrentData().getPath() + "数据变为 : " + data);
+            AppLimitConfig config= JSONObject.parseObject(data,AppLimitConfig.class);
+            manager.rebuildRule(config);
+
+        });
+        nodeCache.start();
     }
 
     @Override
