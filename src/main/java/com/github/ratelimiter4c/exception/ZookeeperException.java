@@ -1,19 +1,19 @@
 package com.github.ratelimiter4c.exception;
 
-public class AsmException extends RuntimeException {
+public class ZookeeperException extends RuntimeException {
 
     private String msg;
 
-    public AsmException(String msg) {
+    public ZookeeperException(String msg) {
 		super(msg);
 		this.msg = msg;
 	}
 
-	public AsmException(Throwable e) {
+	public ZookeeperException(Throwable e) {
 		super(e);
 	}
 
-	public AsmException(String msg, Throwable e) {
+	public ZookeeperException(String msg, Throwable e) {
 		super(msg, e);
 		this.msg = msg;
 	}

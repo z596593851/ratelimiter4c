@@ -1,7 +1,5 @@
 package com.github.ratelimiter4c.limiter.rule.source;
 
-
-
 import com.github.ratelimiter4c.limiter.rule.AppLimitManager;
 
 import java.util.List;
@@ -20,8 +18,4 @@ public class FileLimitSource implements AppLimitSource{
         return config.getLimits();
     }
 
-    @Override
-    public void rebuild(AppLimitConfig config){
-        this.manager.rebuildRule(config);
-    }
 }

@@ -7,7 +7,7 @@ import com.github.ratelimiter4c.limiter.algorithm.TokenBucketRateLimitAlg;
 
 public class MemoryUrlRateLimiter extends AbstractUrlRateLimiter implements UrlRateLimiter {
     @Override
-    protected LimitAlg createRateLimitAlgorithm(String limitKey, int limit) {
-        return new TokenBucketRateLimitAlg(limitKey,limit);
+    public LimitAlg createRateLimitAlgorithm(String limitKey, int limit) {
+        return new TokenBucketRateLimitAlg(limit);
     }
 }

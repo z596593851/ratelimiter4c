@@ -6,22 +6,21 @@ package com.github.ratelimiter4c.limiter.rule.source;
 public class AppLimitModel {
 
   private static final int DEFAULT_TIME_UNIT = 1; // 1 second
-
   private String api;
-
   private int limit;
-
+  private String returnValue;
   private int unit = DEFAULT_TIME_UNIT;
 
   public AppLimitModel() {}
 
-  public AppLimitModel(String api, int limit) {
-    this(api, limit, DEFAULT_TIME_UNIT);
+  public AppLimitModel(String api, int limit, String returnValue) {
+    this(api, limit, returnValue, DEFAULT_TIME_UNIT);
   }
 
-  public AppLimitModel(String api, int limit, int unit) {
+  public AppLimitModel(String api, int limit, String returnValue, int unit) {
     this.api = api;
     this.limit = limit;
+    this.returnValue=returnValue;
     this.unit = unit;
   }
 
@@ -49,9 +48,20 @@ public class AppLimitModel {
     this.unit = unit;
   }
 
-  @Override
-  public String toString() {
-    return "[api=" + api + ";limit=" + limit + ";unit=" + unit + "]";
+  public String getReturnValue() {
+    return returnValue;
   }
 
+  public void setReturnValue(String returnValue) {
+    this.returnValue = returnValue;
+  }
+
+  @Override
+  public String toString() {
+    return "AppLimitModel{" +
+            "api='" + api + '\'' +
+            ", limit=" + limit +
+            ", returnValue='" + returnValue + '\'' +
+            '}';
+  }
 }

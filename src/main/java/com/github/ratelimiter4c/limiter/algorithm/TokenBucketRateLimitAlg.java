@@ -26,12 +26,10 @@ public class TokenBucketRateLimitAlg implements LimitAlg{
     private long currentToken = 0L;
     private final Lock lock = new ReentrantLock();
     private static final long TRY_LOCK_TIMEOUT = 200L;
-    private final String limitKey;
 
-    public TokenBucketRateLimitAlg(String limitKey, int capacity){
+    public TokenBucketRateLimitAlg(int capacity){
         this.capacity=capacity;
         this.putTokenRate=capacity;
-        this.limitKey=limitKey;
     }
 
     @Override
@@ -45,7 +43,8 @@ public class TokenBucketRateLimitAlg implements LimitAlg{
                     // 当前令牌数量 = 之前的桶内令牌数量+放入的令牌数量
                     if(generateToken>0){
                         currentToken = Math.min(capacity, generateToken + currentToken);
-                        refreshTime = currentTime; // 刷新时间
+                        // 刷新时间
+                        refreshTime = currentTime;
                     }
                     //桶里面还有令牌，请求正常处理
                     if (currentToken > 0) {

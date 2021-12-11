@@ -2,7 +2,7 @@ package com.github.ratelimiter4c.limiter.rule;
 
 
 import com.github.ratelimiter4c.limiter.rule.source.AppLimitModel;
-import com.github.ratelimiter4c.utils.UrlUtils;
+import com.github.ratelimiter4c.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import java.util.Collection;
 import java.util.List;
@@ -24,7 +24,7 @@ public class UrlStorage {
   public void addLimitInfo(AppLimitModel appLimitModel){
     String urlPath = appLimitModel.getApi();
     if (!urlPath.startsWith("/")) {
-      throw new RuntimeException("the api is invalid: " + urlPath);
+      throw new IllegalArgumentException("the api is invalid: " + urlPath);
     }
 
     if (appLimitModel.getApi().equals("/")) {
@@ -32,7 +32,7 @@ public class UrlStorage {
       return;
     }
 
-    List<String> pathDirs = UrlUtils.tokenizeUrlPath(appLimitModel.getApi());
+    List<String> pathDirs = Utils.tokenizeUrlPath(appLimitModel.getApi());
     if (pathDirs.isEmpty()) {
       return;
     }
@@ -77,7 +77,7 @@ public class UrlStorage {
       return root.getApiLimit();
     }
 
-    List<String> pathDirs = UrlUtils.tokenizeUrlPath(urlPath);
+    List<String> pathDirs = Utils.tokenizeUrlPath(urlPath);
     if (pathDirs.isEmpty()) {
       return null;
     }

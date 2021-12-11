@@ -11,14 +11,9 @@ public class DistributedTokenBucketRateLimitAlg implements LimitAlg{
      * 令牌桶容量
      */
     private final int capacity;
-
-    /**
-     * 当前桶内令牌数
-     */
-    private long currentToken = 0L;
-    private JedisAdapter jedis;
+    private final JedisAdapter jedis;
     private final String limitKey;
-    private static String REDIS_STR=
+    private final static String REDIS_STR=
             "local key = KEYS[1] " +
             "local putTokenRate = tonumber(ARGV[1]) " +
             "local currentTime = tonumber(ARGV[2]) " +

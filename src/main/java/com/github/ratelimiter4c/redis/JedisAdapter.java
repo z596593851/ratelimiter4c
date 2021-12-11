@@ -4,19 +4,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-
 import java.util.Arrays;
 import java.util.Collections;
 
 public class JedisAdapter {
     private static final Logger logger = LoggerFactory.getLogger(JedisAdapter.class);
-    private final JedisPool pool;
-    private final String url;
+    private static JedisPool pool;
+    private static JedisAdapter jedisAdapter;
 
-    public JedisAdapter(String url){
-        this.url=url;
-//        this.pool=null;
-        this.pool = new JedisPool(url);
+//    public JedisAdapter(String url){
+//        this.pool = new JedisPool(url);
+//    }
+
+    public static JedisAdapter getInstance(String url){
+        if(jedisAdapter==null){
+            pool=new JedisPool(url);
+            jedisAdapter=new JedisAdapter();
+        }
+        return jedisAdapter;
     }
 
     public long set(String key, String value) {

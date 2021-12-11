@@ -3,6 +3,7 @@ package com.github.ratelimiter4c.limiter.rule;
 
 import com.github.ratelimiter4c.limiter.rule.source.AppLimitConfig;
 import com.github.ratelimiter4c.limiter.rule.source.AppLimitModel;
+import com.github.ratelimiter4c.limiter.rule.source.ConfigChangeEvent;
 import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -62,12 +63,11 @@ public class AppLimitManager {
     }
   }
 
-  public void rebuildRule(AppLimitConfig config) {
+  public void rebuildRule(String appId,ConfigChangeEvent event) {
     ConcurrentHashMap<String, UrlStorage> newLimitRules = new ConcurrentHashMap<>();
-    String appId = config.getAppId();
     UrlStorage urlStorage = new UrlStorage();
     newLimitRules.put(appId, urlStorage);
-    for (AppLimitModel appLimitModel : config.getLimits()) {
+    for (AppLimitModel appLimitModel : event.getLimits()) {
       urlStorage.addLimitInfo(appLimitModel);
     }
     limitRules = newLimitRules;

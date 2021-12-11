@@ -2,6 +2,7 @@ package com.github.ratelimiter4c;
 
 import com.alibaba.fastjson.JSONObject;
 import com.github.ratelimiter4c.limiter.UrlRateLimiter;
+import com.github.ratelimiter4c.limiter.rule.DistributedUrlRateLimiter;
 import com.github.ratelimiter4c.limiter.rule.MemoryUrlRateLimiter;
 import com.github.ratelimiter4c.limiter.rule.source.AppLimitConfig;
 import com.github.ratelimiter4c.limiter.rule.source.AppLimitModel;
@@ -38,7 +39,7 @@ public class LimitTest {
     }
 
     public static void main(String[] args) {
-        UrlRateLimiter limiter=new MemoryUrlRateLimiter();
+        UrlRateLimiter limiter=new DistributedUrlRateLimiter();
         limiter.limit("/123");
 //        while (true){
 //

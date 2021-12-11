@@ -15,7 +15,7 @@ public class DBTest {
     @Test
     public void insert() throws Exception {
         DBUtils dbUtils=new DBUtils("jdbc:mysql://127.0.0.1:3306/local","root","root");
-        SaveModel model=new SaveModel("app1","/tqr",0,new Date(),1L);
+        SaveModel model=new SaveModel("app1","/tqr",0,new Date(),1L,"");
         dbUtils.saveBatch(Collections.singletonList(model));
     }
 

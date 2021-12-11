@@ -1,10 +1,10 @@
 package com.github.ratelimiter4c.monitor;
 
+import com.github.ratelimiter4c.constant.ValueConstant;
 import com.github.ratelimiter4c.db.DBUtils;
 import com.github.ratelimiter4c.db.SaveModel;
 import com.github.ratelimiter4c.limiter.rule.source.AppLimitConfig;
 import com.github.ratelimiter4c.utils.Utils;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -28,7 +28,7 @@ public class MonitorManager {
             } catch (Exception e) {
                 //ignore
             }
-        }, 5, 5, TimeUnit.SECONDS);
+        }, ValueConstant.MONITOR_REPORT_PERIOD_MS, ValueConstant.MONITOR_REPORT_PERIOD_MS, TimeUnit.MILLISECONDS);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (!scheduledExecutor.isShutdown()) {
                 scheduledExecutor.shutdown();
@@ -42,7 +42,7 @@ public class MonitorManager {
             synchronized(this){
                 rollingNumber=cache.get(url);
                 if(rollingNumber==null){
-                    rollingNumber=new RollingNumber(10000,10);
+                    rollingNumber=new RollingNumber(ValueConstant.MONITOR_RN_STATISTIC_PERIOD_MS,ValueConstant.MONITOR_RN_NUMBER_OF_BUCKETS);
                     cache.put(url,rollingNumber);
                 }
             }

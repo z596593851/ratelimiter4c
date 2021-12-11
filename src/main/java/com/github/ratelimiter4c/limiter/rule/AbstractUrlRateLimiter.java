@@ -1,10 +1,15 @@
 package com.github.ratelimiter4c.limiter.rule;
 
+import com.github.ratelimiter4c.constant.FileAndPathConstant;
+import com.github.ratelimiter4c.constant.ValueConstant;
 import com.github.ratelimiter4c.exception.AsmException;
+import com.github.ratelimiter4c.exception.ZookeeperException;
 import com.github.ratelimiter4c.limiter.UrlRateLimiter;
 import com.github.ratelimiter4c.limiter.algorithm.LimitAlg;
 import com.github.ratelimiter4c.limiter.rule.source.*;
 import com.github.ratelimiter4c.monitor.MonitorManager;
+import com.github.ratelimiter4c.utils.Utils;
+import com.github.ratelimiter4c.utils.ZkUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
@@ -17,46 +22,49 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-public abstract class AbstractUrlRateLimiter implements UrlRateLimiter {
+public abstract class AbstractUrlRateLimiter implements UrlRateLimiter{
 
     private final AppLimitManager appLimitManager;
     private final Map<String, AppLimitSource> appLimitSourceFactory =new HashMap<>();
     private final ConcurrentHashMap<String, LimitAlg> cache = new ConcurrentHashMap<>(256);
-    protected final AppLimitConfig config;
+    protected volatile AppLimitConfig config;
     private final MonitorManager monitorManager;
     private CuratorFramework client;
 
-
-
     public AbstractUrlRateLimiter() {
-        InputStream in=this.getClass().getResourceAsStream("/ratelimiter.yaml");
+        InputStream in=this.getClass().getResourceAsStream(FileAndPathConstant.RATELIMITER_CONFIG_PATH);
         Yaml yaml = new Yaml();
         this.config = yaml.loadAs(in, AppLimitConfig.class);
         this.appLimitManager=new AppLimitManager();
         this.monitorManager=new MonitorManager(config);
         initZk();
         initAppLimitSourceFactory(appLimitManager,config);
-
-        AppLimitSource source=appLimitSourceFactory.get(config.getConfigType());
-        if(source==null){
-            throw new AsmException("未知的配置文件类型");
+        AppLimitSource source = appLimitSourceFactory.get(config.getConfigType());
+        if(source == null){
+            throw new IllegalArgumentException("未知的配置文件类型");
         }
-        appLimitManager.addLimits(config.getAppId(),source.load());
+        appLimitManager.addLimits(config.getAppId(), source.load());
     }
 
-    private void initZk(){
+    private void initZk() {
         if(!StringUtils.isBlank(this.config.getZookeeper())){
             try {
-                RetryPolicy retryPolicy = new ExponentialBackoffRetry(1000, 3);
-                this.client= CuratorFrameworkFactory.builder().connectString(config.getZookeeper()).sessionTimeoutMs(10000).retryPolicy(retryPolicy).build();
+                RetryPolicy retryPolicy = new ExponentialBackoffRetry(ValueConstant.ZK_RETRY_SLEEP_TIME_MS, ValueConstant.ZK_RETRY_MAX_TIMES);
+                this.client= CuratorFrameworkFactory.builder().connectString(config.getZookeeper()).sessionTimeoutMs(ValueConstant.ZK_SESSION_TIMEOUT_MS).retryPolicy(retryPolicy).build();
                 this.client.start();
+                //todo 上报节点信息
                 boolean connected = client.blockUntilConnected(3000, TimeUnit.MILLISECONDS);
-                if (!connected) {
-                    throw new AsmException("connect zookeeper failed.");
+                if (!connected){
+                    throw new ZookeeperException("connect zookeeper failed.");
                 }
+                ZkUtils.builder(client)
+                        .create(FileAndPathConstant.RATELIMITER_CONFIG_PATH)
+                        .create(FileAndPathConstant.ZK_NODE_PATH)
+                        .createTemp(FileAndPathConstant.SPLIT+config.getAppId())
+                        .createTemp(FileAndPathConstant.SPLIT+Utils.getHostAddress())
+                        .build();
             } catch (Exception e) {
-                this.client=null;
-                throw new AsmException(e);
+                throw new ZookeeperException(e);
             }
         }
     }
@@ -84,14 +92,25 @@ public abstract class AbstractUrlRateLimiter implements UrlRateLimiter {
             monitorManager.collect(url,passed);
         }
         return passed;
-        //todo service返回值可配置化
     }
 
-    private LimitAlg getRateLimiterAlgorithm(String appId, String api, int limit){
-        String limitKey = generateUrlKey(appId, api);
+    @Override
+    public String getReturn(String url) {
+        AppLimitModel model = this.appLimitManager.getLimit(config.getAppId(), url);
+        if(model!=null){
+            return model.getReturnValue();
+        }
+        return config.getReturnValue();
+    }
+
+    public LimitAlg getRateLimiterAlgorithm(String appId, String api, int limit) {
+        //todo 这个缓存在使用远程配置，且limit发生变动后，旧的缓存还会一直存在，考虑加入失效策略
+        String limitKey = Utils.generateUrlKey(appId, api,limit);
         LimitAlg limitAlg = cache.get(limitKey);
         if (limitAlg == null) {
+            System.out.println("新的限流策略:api-"+api+",limit-"+limit);
             LimitAlg newlimitAlg = createRateLimitAlgorithm(limitKey,limit);
+            //putIfAbsent是原子性的
             limitAlg = cache.putIfAbsent(limitKey, newlimitAlg);
             if (limitAlg == null) {
                 limitAlg = newlimitAlg;
@@ -100,9 +119,6 @@ public abstract class AbstractUrlRateLimiter implements UrlRateLimiter {
         return limitAlg;
     }
 
-    private String generateUrlKey(String appId, String api) {
-        return appId + ":" + api;
-    }
 
-    protected abstract LimitAlg createRateLimitAlgorithm(String limitKey, int limit);
+    public abstract LimitAlg createRateLimitAlgorithm(String limitKey, int limit);
 }

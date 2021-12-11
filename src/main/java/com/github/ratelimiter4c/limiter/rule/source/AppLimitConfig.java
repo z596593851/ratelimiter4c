@@ -11,6 +11,7 @@ public class AppLimitConfig {
     private String dbUrl;
     private String dbUsername;
     private String dbPassword;
+    private String returnValue;
     private List<AppLimitModel> limits;
 
     public AppLimitConfig() {}
@@ -90,5 +91,13 @@ public class AppLimitConfig {
 
     public void setDbPassword(String dbPassword) {
         this.dbPassword = dbPassword;
+    }
+
+    public String getReturnValue() {
+        return returnValue;
+    }
+
+    public void setReturnValue(String returnValue) {
+        this.returnValue = returnValue;
     }
 }

@@ -34,6 +34,25 @@ public class HttpServletMethodVisitor extends AdviceAdapter {
         mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
         mv.visitLdcInsn("has been limited");
         mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
+
+
+        mv.visitVarInsn(ALOAD, 2);
+        mv.visitLdcInsn("utf-8");
+        mv.visitMethodInsn(INVOKEINTERFACE, "javax/servlet/http/HttpServletResponse", "setCharacterEncoding", "(Ljava/lang/String;)V", true);
+        mv.visitVarInsn(ALOAD, 2);
+        mv.visitLdcInsn("application/json; charset=utf-8");
+        mv.visitMethodInsn(INVOKEINTERFACE, "javax/servlet/http/HttpServletResponse", "setContentType", "(Ljava/lang/String;)V", true);
+        mv.visitVarInsn(ALOAD, 2);
+        mv.visitMethodInsn(INVOKEINTERFACE, "javax/servlet/http/HttpServletResponse", "getWriter", "()Ljava/io/PrintWriter;", true);
+        mv.visitVarInsn(ASTORE, 5);
+        mv.visitVarInsn(ALOAD, 5);
+        mv.visitLdcInsn("has been limited");
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintWriter", "write", "(Ljava/lang/String;)V", false);
+        mv.visitVarInsn(ALOAD, 5);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintWriter", "flush", "()V", false);
+        mv.visitVarInsn(ALOAD, 5);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintWriter", "close", "()V", false);
+
         mv.visitInsn(RETURN);
         mv.visitLabel(l0);
 
