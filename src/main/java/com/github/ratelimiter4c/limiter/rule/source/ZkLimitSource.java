@@ -2,12 +2,13 @@ package com.github.ratelimiter4c.limiter.rule.source;
 
 import com.alibaba.fastjson.JSONObject;
 import com.github.ratelimiter4c.constant.FileAndPathConstant;
-import com.github.ratelimiter4c.exception.AsmException;
+import com.github.ratelimiter4c.exception.ZookeeperException;
 import com.github.ratelimiter4c.limiter.rule.AppLimitManager;
 import com.github.ratelimiter4c.utils.ZkUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.NodeCache;
+
 import java.util.List;
 
 public class ZkLimitSource implements AppLimitSource{
@@ -23,7 +24,7 @@ public class ZkLimitSource implements AppLimitSource{
         try {
             watch();
         } catch (Exception e) {
-            throw new AsmException(e);
+            throw new ZookeeperException(e);
         }
     }
 
@@ -41,7 +42,7 @@ public class ZkLimitSource implements AppLimitSource{
                 return config.getLimits();
             }
         } catch (Exception e) {
-            throw new AsmException(e);
+            throw new ZookeeperException(e);
         }
         return null;
     }

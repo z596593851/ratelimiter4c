@@ -1,5 +1,8 @@
 package com.github.ratelimiter4c;
 
+import com.github.ratelimiter4c.constant.FileAndPathConstant;
+import com.github.ratelimiter4c.utils.Utils;
+import com.github.ratelimiter4c.utils.ZkUtils;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -63,6 +66,16 @@ public class ZkTest {
             }
         });
         nodeCache.start();
+    }
+
+    @Test
+    public void ttt() throws Exception {
+        ZkUtils.builder(client)
+                .create(FileAndPathConstant.ZK_ROOT_PATH)
+                .create(FileAndPathConstant.ZK_NODE_PATH)
+                .createTemp("/app1")
+                .createTemp(FileAndPathConstant.SPLIT+ Utils.getHostAddress())
+                .build();
     }
 
 

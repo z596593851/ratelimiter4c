@@ -1,6 +1,8 @@
 package com.github.ratelimiter4c.db;
 
 import com.github.ratelimiter4c.exception.AsmException;
+import com.github.ratelimiter4c.exception.DBException;
+
 import java.sql.*;
 import java.util.List;
 
@@ -13,7 +15,7 @@ public class DBUtils {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            throw new AsmException(e);
+            throw new DBException(e);
         }
     }
 

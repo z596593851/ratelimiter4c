@@ -50,7 +50,7 @@ public class ZkUtils {
                 path=path+node.getPath();
                 if(client.checkExists().forPath(path)==null){
                     if(node.isTemp()){
-                        client.create().withMode(CreateMode.PERSISTENT_SEQUENTIAL).forPath(path);
+                        client.create().withMode(CreateMode.EPHEMERAL).forPath(path);
                     }else{
                         client.create().forPath(path);
                     }
