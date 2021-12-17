@@ -8,6 +8,23 @@ import java.util.List;
 
 public class ZkUtils {
 
+    public enum NodeType{
+        /**
+         * 永久节点
+         */
+        NORMAL,
+        /**
+         * CONTAINER节点，当其子节点都消失后，自己也会消失
+         */
+        CONTAINER,
+        /**
+         * 临时节点
+         */
+        TEMP,
+        ;
+
+    }
+
     public static ZkPathBuild builder(CuratorFramework client){
         return new ZkPathBuild(client);
     }
@@ -32,15 +49,21 @@ public class ZkUtils {
          * 创建永久节点
          */
         public ZkPathBuild create(String path) throws Exception {
-            nodeList.add(new ZkNode(path,false));
+            nodeList.add(new ZkNode(path,NodeType.NORMAL));
             return this;
         }
-
+        /**
+         * 创建CONTAINER节点
+         */
+        public ZkPathBuild createContainer(String path) throws Exception {
+            nodeList.add(new ZkNode(path,NodeType.CONTAINER));
+            return this;
+        }
         /**
          * 创建临时节点
          */
         public ZkPathBuild createTemp(String path) throws Exception {
-            nodeList.add(new ZkNode(path,true));
+            nodeList.add(new ZkNode(path,NodeType.TEMP));
             return this;
         }
 
@@ -49,10 +72,11 @@ public class ZkUtils {
             for(ZkNode node:nodeList){
                 path=path+node.getPath();
                 if(client.checkExists().forPath(path)==null){
-                    if(node.isTemp()){
-                        client.create().withMode(CreateMode.EPHEMERAL).forPath(path);
-                    }else{
-                        client.create().forPath(path);
+                    switch (node.getType()){
+                        case NORMAL: client.create().forPath(path);break;
+                        case CONTAINER: client.create().withMode(CreateMode.CONTAINER).forPath(path);break;
+                        case TEMP: client.create().withMode(CreateMode.EPHEMERAL).forPath(path);break;
+                        default:break;
                     }
                 }
             }
@@ -61,18 +85,18 @@ public class ZkUtils {
 
     public static class ZkNode{
         private final String path;
-        private final boolean isTemp;
-        public ZkNode(String path, boolean isTemp) {
+        private final NodeType type;
+        public ZkNode(String path, NodeType type) {
             this.path = path;
-            this.isTemp = isTemp;
+            this.type = type;
         }
 
         public String getPath() {
             return path;
         }
 
-        public boolean isTemp() {
-            return isTemp;
+        public NodeType getType() {
+            return type;
         }
     }
 }

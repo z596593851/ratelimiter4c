@@ -2,7 +2,6 @@ package com.github.ratelimiter4c.limiter.rule;
 
 import com.github.ratelimiter4c.constant.FileAndPathConstant;
 import com.github.ratelimiter4c.constant.ValueConstant;
-import com.github.ratelimiter4c.exception.AsmException;
 import com.github.ratelimiter4c.exception.ZookeeperException;
 import com.github.ratelimiter4c.limiter.UrlRateLimiter;
 import com.github.ratelimiter4c.limiter.algorithm.LimitAlg;
@@ -52,7 +51,6 @@ public abstract class AbstractUrlRateLimiter implements UrlRateLimiter{
                 RetryPolicy retryPolicy = new ExponentialBackoffRetry(ValueConstant.ZK_RETRY_SLEEP_TIME_MS, ValueConstant.ZK_RETRY_MAX_TIMES);
                 this.client= CuratorFrameworkFactory.builder().connectString(config.getZookeeper()).sessionTimeoutMs(ValueConstant.ZK_SESSION_TIMEOUT_MS).retryPolicy(retryPolicy).build();
                 this.client.start();
-                //todo 上报节点信息
                 boolean connected = client.blockUntilConnected(ValueConstant.ZK_BLOCK_UNTIL_CONNECTED_MS, TimeUnit.MILLISECONDS);
                 if (!connected){
                     throw new ZookeeperException("connect zookeeper failed.");
@@ -60,7 +58,7 @@ public abstract class AbstractUrlRateLimiter implements UrlRateLimiter{
                 ZkUtils.builder(client)
                         .create(FileAndPathConstant.ZK_ROOT_PATH)
                         .create(FileAndPathConstant.ZK_NODE_PATH)
-                        .createTemp(FileAndPathConstant.SPLIT+config.getAppId())
+                        .createContainer(FileAndPathConstant.SPLIT+config.getAppId())
                         .createTemp(FileAndPathConstant.SPLIT+Utils.getHostAddress())
                         .build();
             } catch (Exception e) {

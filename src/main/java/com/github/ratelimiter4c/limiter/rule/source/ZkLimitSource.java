@@ -35,8 +35,10 @@ public class ZkLimitSource implements AppLimitSource{
             ZkUtils.builder(client)
                     .create(FileAndPathConstant.ZK_ROOT_PATH)
                     .create(FileAndPathConstant.ZK_CONFIG_PATH)
-                    .create(FileAndPathConstant.SPLIT+config.getAppId());
+                    .create(FileAndPathConstant.SPLIT+config.getAppId())
+                    .build();
             String data = getZkData();
+            System.out.println("zk配置:"+data);
             if(!StringUtils.isBlank(data)){
                 AppLimitConfig config= JSONObject.parseObject(data,AppLimitConfig.class);
                 return config.getLimits();
@@ -53,6 +55,9 @@ public class ZkLimitSource implements AppLimitSource{
         nodeCache.getListenable().addListener(() -> {
             String data=new String(nodeCache.getCurrentData().getData());
             System.out.println("监听的节点为" + nodeCache.getCurrentData().getPath() + "数据变为 : " + data);
+            if(!data.startsWith("{")){
+                throw new IllegalArgumentException("非法的配置格式:"+data);
+            }
             ConfigChangeEvent event= JSONObject.parseObject(data,ConfigChangeEvent.class);
             manager.rebuildRule(config.getAppId(),event);
             //加锁保证线程安全

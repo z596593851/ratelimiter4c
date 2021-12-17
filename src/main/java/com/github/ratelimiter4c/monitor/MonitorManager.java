@@ -17,6 +17,9 @@ public class MonitorManager {
 
     private final ScheduledExecutorService scheduledExecutor =
             new ScheduledThreadPoolExecutor(1,r -> new Thread(r, "ratelimiter-monitor-thread"));
+    /**
+     * qps缓存
+     */
     private final Map<String, RollingNumber> cache =new ConcurrentHashMap<>(256);
 
     public MonitorManager(AppLimitConfig config){
@@ -37,6 +40,7 @@ public class MonitorManager {
     }
 
     public void collect(String url, boolean result) {
+        //todo 各接口总访问量
         RollingNumber rollingNumber=cache.get(url);
         if(rollingNumber==null){
             synchronized(this){
@@ -57,12 +61,22 @@ public class MonitorManager {
 
 
     private void report() throws Exception{
+        //todo 统计总访问量、异常量、400/500量、访问耗时
+
+        //todo 定时汇总做成发布订阅模式
+        //todo 降级：a调b，可以在a里主动降级b或者b的某个函数
+        //todo 熔断：a调b，可以在a里配置调b时的熔断条件，一旦触发就自动降级
+
+        //todo 也可以在a设置降级策略，当a服务中某个接口的qps、异常量、400/500量、访问耗时
+        // 达到阈值时，直接返回某个结果。
+        // 当设置了限流时，就不要再设置qps的降级策略了，两者冲突
+
+        //todo 也可以直接降级某个接口
         System.out.println("定时任务-"+Thread.currentThread().getName());
         Set<String> pathSet=new HashSet<>(cache.keySet());
         if(pathSet.size()==0){
             return;
         }
-        List<SaveModel> list=null;
         for(String path:pathSet){
             RollingNumber rollingNumber = cache.get(path);
             if(rollingNumber==null){
@@ -73,7 +87,7 @@ public class MonitorManager {
                 continue;
             }
             System.out.println("path:"+path+"-"+"total:"+total);
-            list=new ArrayList<>(3);
+            List<SaveModel> list=new ArrayList<>(3);
             long passed = rollingNumber.getRollingSum(EventType.PASSED);
             long limited = rollingNumber.getRollingSum(EventType.LIMITED);
             // 入库操作
